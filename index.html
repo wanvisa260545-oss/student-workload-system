@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบแจ้งรายการงานนักศึกษา</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:linear-gradient(135deg,#fff0f7,#f3e8ff,#fde2f3);color:#5b0b5b}
+.login{min-height:100vh;display:flex;justify-content:center;align-items:center}
+.login-box{width:430px;background:white;padding:35px;border-radius:30px;border:3px solid #f9a8d4;text-align:center;box-shadow:0 15px 35px rgba(236,72,153,.25)}
+h1,h2,h3{color:#c026d3}
+input,select,textarea{width:100%;padding:12px;margin:7px 0;border-radius:15px;border:2px solid #f9a8d4;background:#fff7fb}
+button{border:0;border-radius:15px;padding:12px 18px;background:linear-gradient(135deg,#a855f7,#ec4899);color:white;font-weight:bold;cursor:pointer}
+button:hover{transform:translateY(-2px)}
+.hint{background:#fff0f7;padding:12px;border-radius:15px;margin-top:15px;color:#9d174d;font-size:14px;text-align:left}
+
+.app{display:none}
+.header{margin:14px;padding:25px;border-radius:28px;background:linear-gradient(135deg,#a855f7,#ec4899,#fb7185);color:white;display:flex;justify-content:space-between;align-items:center}
+.header h1{color:white;text-align:center;margin:0}
+.chibi{font-size:65px}
+.userbox{background:white;color:#9d174d;padding:12px 18px;border-radius:18px;font-weight:bold}
+
+.layout{display:grid;grid-template-columns:230px 1fr;gap:18px;padding:0 18px 18px}
+.sidebar,.panel,.card{background:rgba(255,255,255,.94);border:2px solid #fbcfe8;border-radius:24px;padding:20px;box-shadow:0 8px 22px rgba(236,72,153,.15)}
+.menu{padding:14px;margin:10px 0;border-radius:16px;font-weight:bold;color:#9333ea;cursor:pointer}
+.menu:hover,.menu.active{background:#fce7f3;color:#db2777}
+.teacher-only{display:none}
+
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:15px;margin-bottom:18px}
+.card{text-align:center}
+.card h2{font-size:30px;margin:0}
+
+.page{display:none}.page.active{display:block}
+.row{display:grid;grid-template-columns:1fr 1.3fr;gap:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.full{grid-column:1/3}
+
+table{width:100%;border-collapse:collapse;background:white;border-radius:18px;overflow:hidden}
+th{background:#f5d0fe;color:#86198f}
+td,th{padding:10px;text-align:center;border-bottom:1px solid #fce7f3;font-size:14px}
+.delete{background:#fb7185;padding:7px 10px}
+
+.filters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+
+.calendar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid #e9d5ff;border-radius:18px;overflow:hidden}
+.day-name{background:#f5d0fe;padding:12px;text-align:center;font-weight:bold;color:#86198f;border:1px solid #e9d5ff}
+.day{min-height:120px;padding:9px;background:white;border:1px solid #e9d5ff}
+.empty{background:#faf5ff}
+.today{background:#fdf2f8;outline:3px solid #ec4899;outline-offset:-3px}
+.date{font-weight:bold;color:#9333ea;margin-bottom:6px}
+.task-card{background:#ffe4f1;border-radius:12px;padding:7px;margin-top:6px;font-size:12px;color:#831843}
+.footer{text-align:center;padding:12px;background:linear-gradient(135deg,#a855f7,#ec4899);color:white;font-weight:bold}
+
+@media(max-width:1050px){.layout{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr 1fr}.row{grid-template-columns:1fr}}
+@media(max-width:650px){.cards,.form-grid,.filters{grid-template-columns:1fr}.full{grid-column:1}.calendar{grid-template-columns:repeat(2,1fr)}.day-name{display:none}}/* ===== Mobile & Tablet Responsive ===== */
+
+@media screen and (max-width: 1024px){
+
+  .layout{
+    grid-template-columns: 1fr;
+  }
+
+  .cards{
+    grid-template-columns: repeat(2,1fr);
+  }
+
+  .row{
+    grid-template-columns:1fr;
+  }
+
+  .header{
+    flex-direction:column;
+    gap:15px;
+    text-align:center;
+  }
+
+  .header h1{
+    font-size:28px;
+  }
+
+}
+
+@media screen and (max-width:768px){
+
+  .cards{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .sidebar{
+    width:100%;
+  }
+
+  .calendar{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .day-name{
+    display:none;
+  }
+
+  table{
+    font-size:12px;
+    display:block;
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+
+  .header h1{
+    font-size:22px;
+  }
+
+  .userbox{
+    width:100%;
+    text-align:center;
+  }
+
+}
+
+@media screen and (max-width:480px){
+
+  .cards{
+    grid-template-columns:1fr;
+  }
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .full{
+    grid-column:1;
+  }
+
+  .filters{
+    grid-template-columns:1fr;
+  }
+
+  .login-box{
+    width:95%;
+    padding:20px;
+  }
+
+  .header{
+    padding:15px;
+  }
+
+  .header h1{
+    font-size:18px;
+  }
+
+  .chibi{
+    font-size:45px;
+  }
+
+  .menu{
+    font-size:14px;
+  }
+
+  button{
+    width:100%;
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<div id="loginPage" class="login">
+  <div class="login-box">
+    <h1>🌸 เข้าสู่ระบบ 🌸</h1>
+    <p>ระบบแจ้งรายการงานนักศึกษา<br>สาขาสาธารณสุขศาสตร์</p>
+
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="login()">เข้าสู่ระบบ 💖</button>
+
+    <div class="hint">
+  🌸 กรุณาเข้าสู่ระบบด้วยบัญชีที่ได้รับจากผู้ดูแลระบบ
+</div>
+  </div>
+</div>
+
+<div id="app" class="app">
+
+<div class="header">
+  <div class="chibi">👩‍⚕️</div>
+  <h1>🌸 ระบบแจ้งรายการงานนักศึกษา<br>สาขาสาธารณสุขศาสตร์ 🌸</h1>
+  <div class="userbox">👤 <span id="currentUser"></span><br>🕘 <span id="timeText"></span></div>
+  <div class="chibi">🎓🐱</div>
+</div>
+
+<div class="layout">
+
+<aside class="sidebar">
+  <h3>🎀 เมนูหลัก</h3>
+  <div class="menu active" onclick="showPage('home',this)">🏠 หน้าหลัก</div>
+  <div class="menu" onclick="showPage('allTasks',this)">📋 รายการงานทั้งหมด</div>
+  <div class="menu" onclick="showPage('calendarPage',this)">📅 ปฏิทินงาน</div>
+  <div class="menu teacher-only" onclick="exportCSV()">📤 Export CSV</div>
+  <div class="menu teacher-only" onclick="clearAll()">🗑️ ลบข้อมูลทั้งหมด</div>
+  <button onclick="logout()" style="width:100%;background:#ef4444">ออกจากระบบ</button>
+
+  <div style="font-size:80px;text-align:center;margin-top:35px">🐰</div>
+  <div style="background:#fff0f7;border:2px solid #f9a8d4;border-radius:18px;padding:12px;text-align:center;color:#a21caf;font-weight:bold">
+    นักศึกษาดูได้เฉพาะ<br>งานชั้นปีของตนเอง 💗
+  </div>
+</aside>
+
+<main>
+
+<section class="cards">
+  <div class="card"><h2 id="totalTasks">0</h2><p>📚 งานทั้งหมด</p></div>
+  <div class="card"><h2 id="year1Count">0</h2><p>🎓 ปี 1</p></div>
+  <div class="card"><h2 id="year2Count">0</h2><p>🎓 ปี 2</p></div>
+  <div class="card"><h2 id="year3Count">0</h2><p>🎓 ปี 3</p></div>
+  <div class="card"><h2 id="year4Count">0</h2><p>🎓 ปี 4</p></div>
+  <div class="card"><h2 id="nearDueCount">0</h2><p>⏰ ใกล้ส่ง</p></div>
+</section>
+
+<section id="home" class="page active">
+  <div class="row">
+
+    <div class="panel teacher-only">
+      <h2>➕ เพิ่มรายการงาน</h2>
+
+      <form id="taskForm" class="form-grid">
+        <div>
+          <label>👩‍🏫 ชื่อผู้สอน</label>
+          <input id="teacher" required placeholder="เช่น อ.มะลิ">
+        </div>
+
+        <div>
+          <label>🎓 ชั้นปี</label>
+          <select id="yearLevel">
+            <option>ปี 1</option>
+            <option>ปี 2</option>
+            <option>ปี 3</option>
+            <option>ปี 4</option>
+          </select>
+        </div>
+
+        <div>
+          <label>📚 รายวิชา</label>
+          <input id="course" required placeholder="เช่น อนามัยชุมชน">
+        </div>
+
+        <div>
+          <label>📅 วันที่กำหนดส่ง</label>
+          <input id="dueDate" type="date" required>
+        </div>
+
+        <div>
+          <label>📝 ชื่องาน</label>
+          <input id="taskName" required placeholder="เช่น รายงานสุขศึกษา">
+        </div>
+
+        <div>
+          <label>🏷️ ประเภทงาน</label>
+          <select id="type">
+            <option>📘 การบ้าน</option>
+            <option>📝 รายงาน</option>
+            <option>💻 โปรเจกต์</option>
+            <option>🎤 นำเสนอ</option>
+            <option>🧪 แลป/ฝึกปฏิบัติ</option>
+            <option>🏥 ฝึกงาน</option>
+            <option>⭐ สอบย่อย</option>
+          </select>
+        </div>
+
+        <div class="full">
+          <label>📌 รายละเอียดงาน</label>
+          <textarea id="detail" rows="3" placeholder="เช่น ส่งไฟล์ PDF / ทำเป็นกลุ่ม"></textarea>
+        </div>
+
+        <div class="full">
+          <button type="submit">💾 บันทึกรายการงาน</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>📌 งานล่าสุด</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>ชั้นปี</th><th>วิชา</th><th>งาน</th><th>กำหนดส่ง</th><th class="teacher-col">ลบ</th>
+          </tr>
+        </thead>
+        <tbody id="latestTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<section id="allTasks" class="page">
+  <div class="panel">
+    <h2>📋 รายการงานทั้งหมด</h2>
+
+    <div class="filters">
+      <input id="searchInput" placeholder="🔍 ค้นหาวิชา / งาน" oninput="renderAll()">
+
+      <select id="filterYear" onchange="renderAll()">
+        <option value="">ทุกชั้นปี</option>
+        <option>ปี 1</option>
+        <option>ปี 2</option>
+        <option>ปี 3</option>
+        <option>ปี 4</option>
+      </select>
+
+      <select id="filterType" onchange="renderAll()">
+        <option value="">ทุกประเภท</option>
+        <option>📘 การบ้าน</option>
+        <option>📝 รายงาน</option>
+        <option>💻 โปรเจกต์</option>
+        <option>🎤 นำเสนอ</option>
+        <option>🧪 แลป/ฝึกปฏิบัติ</option>
+        <option>🏥 ฝึกงาน</option>
+        <option>⭐ สอบย่อย</option>
+      </select>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>ผู้สอน</th><th>ชั้นปี</th><th>รายวิชา</th><th>ชื่องาน</th><th>ประเภท</th><th>กำหนดส่ง</th><th>รายละเอียด</th><th class="teacher-col">ลบ</th>
+        </tr>
+      </thead>
+      <tbody id="taskTable"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="calendarPage" class="page">
+  <div class="panel">
+    <div class="calendar-top">
+      <button onclick="changeMonth(-1)">‹ เดือนก่อน</button>
+      <h2 id="monthTitle"></h2>
+      <button onclick="changeMonth(1)">เดือนถัดไป ›</button>
+    </div>
+    <div class="calendar" id="calendar"></div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<div class="footer">© 2026 ระบบแจ้งรายการงานนักศึกษา 💜</div>
+
+</div>
+
+<script>
+let currentRole = "";
+let currentStudentYear = "";
+let tasks = JSON.parse(localStorage.getItem("publicHealthTasksV2")) || [];
+let currentDate = new Date();
+
+function login(){
+  const user = username.value.trim();
+  const pass = password.value.trim();
+
+  if(user === "teacher" && pass === "1234"){
+    currentRole = "teacher";
+    currentStudentYear = "";
+    openApp("อาจารย์");
+  }else if(user === "year1" && pass === "1111"){
+    currentRole = "student";
+    currentStudentYear = "ปี 1";
+    openApp("นักศึกษา ปี 1");
+  }else if(user === "year2" && pass === "2222"){
+    currentRole = "student";
+    currentStudentYear = "ปี 2";
+    openApp("นักศึกษา ปี 2");
+  }else if(user === "year3" && pass === "3333"){
+    currentRole = "student";
+    currentStudentYear = "ปี 3";
+    openApp("นักศึกษา ปี 3");
+  }else if(user === "year4" && pass === "4444"){
+    currentRole = "student";
+    currentStudentYear = "ปี 4";
+    openApp("นักศึกษา ปี 4");
+  }else{
+    alert("Username หรือ Password ไม่ถูกต้อง");
+  }
+}
+
+function openApp(name){
+  loginPage.style.display = "none";
+  app.style.display = "block";
+  currentUser.innerText = name;
+
+  document.querySelectorAll(".teacher-only").forEach(el=>{
+    el.style.display = currentRole === "teacher" ? "block" : "none";
+  });
+
+  if(currentRole === "student"){
+    filterYear.value = currentStudentYear;
+    filterYear.disabled = true;
+  }else{
+    filterYear.disabled = false;
+  }
+
+  renderAll();
+}
+
+function logout(){
+  currentRole = "";
+  currentStudentYear = "";
+  app.style.display = "none";
+  loginPage.style.display = "flex";
+  username.value = "";
+  password.value = "";
+}
+
+taskForm.addEventListener("submit",function(e){
+  e.preventDefault();
+
+  tasks.push({
+    teacher: teacher.value,
+    yearLevel: yearLevel.value,
+    course: course.value,
+    taskName: taskName.value,
+    type: type.value,
+    dueDate: dueDate.value,
+    detail: detail.value,
+    createdAt: new Date().toLocaleString("th-TH")
+  });
+
+  saveData();
+  renderAll();
+  taskForm.reset();
+});
+
+function showPage(pageId,el){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(pageId).classList.add("active");
+
+  document.querySelectorAll(".menu").forEach(m=>m.classList.remove("active"));
+  el.classList.add("active");
+}
+
+function visibleTasks(){
+  if(currentRole === "student"){
+    return tasks.filter(t=>t.yearLevel === currentStudentYear);
+  }
+  return tasks;
+}
+
+function filteredTasks(){
+  const q = (searchInput?.value || "").toLowerCase();
+  const y = currentRole === "student" ? currentStudentYear : (filterYear?.value || "");
+  const t = filterType?.value || "";
+
+  return tasks.filter(item=>{
+    const text = (item.course + " " + item.taskName + " " + item.teacher).toLowerCase();
+    return (!q || text.includes(q)) &&
+           (!y || item.yearLevel === y) &&
+           (!t || item.type === t);
+  });
+}
+
+function renderTables(){
+  latestTable.innerHTML = "";
+  taskTable.innerHTML = "";
+
+  const showData = visibleTasks();
+
+  showData.slice(-6).forEach((item,i)=>{
+    const realIndex = tasks.indexOf(item);
+    latestTable.innerHTML += `
+      <tr>
+        <td>${realIndex + 1}</td>
+        <td>${item.yearLevel}</td>
+        <td>${item.course}</td>
+        <td>${item.taskName}</td>
+        <td>${formatDate(item.dueDate)}</td>
+        <td class="teacher-col"><button class="delete" onclick="deleteTask(${realIndex})">🗑️</button></td>
+      </tr>
+    `;
+  });
+
+  filteredTasks().forEach(item=>{
+    const realIndex = tasks.indexOf(item);
+    taskTable.innerHTML += `
+      <tr>
+        <td>${realIndex + 1}</td>
+        <td>${item.teacher}</td>
+        <td>${item.yearLevel}</td>
+        <td>${item.course}</td>
+        <td>${item.taskName}</td>
+        <td>${item.type}</td>
+        <td>${formatDate(item.dueDate)}</td>
+        <td>${item.detail || "-"}</td>
+        <td class="teacher-col"><button class="delete" onclick="deleteTask(${realIndex})">🗑️</button></td>
+      </tr>
+    `;
+  });
+
+  document.querySelectorAll(".teacher-col").forEach(el=>{
+    el.style.display = currentRole === "teacher" ? "table-cell" : "none";
+  });
+}
+
+function renderCalendar(){
+  calendar.innerHTML = "";
+
+  const dayNames = ["🌷 วันจันทร์","🍓 วันอังคาร","🐻 วันพุธ","✨ วันพฤหัสบดี","🎀 วันศุกร์","🌈 วันเสาร์","🌞 วันอาทิตย์"];
+  const monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  monthTitle.innerText = `📅 ${monthNames[month]} ${year}`;
+
+  dayNames.forEach(day=>{
+    calendar.innerHTML += `<div class="day-name">${day}</div>`;
+  });
+
+  const first = new Date(year,month,1).getDay();
+  const firstDay = first === 0 ? 6 : first - 1;
+  const lastDate = new Date(year,month+1,0).getDate();
+
+  for(let i=0;i<firstDay;i++){
+    calendar.innerHTML += `<div class="day empty"></div>`;
+  }
+
+  const today = new Date();
+  const data = visibleTasks();
+
+  for(let date=1;date<=lastDate;date++){
+    const fullDate = `${year}-${String(month+1).padStart(2,"0")}-${String(date).padStart(2,"0")}`;
+    const isToday = date === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+
+    let taskHTML = "";
+    data.filter(item=>item.dueDate === fullDate).forEach(item=>{
+      taskHTML += `
+        <div class="task-card">
+          <b>${item.yearLevel}</b><br>
+          ${item.course}<br>
+          ${item.taskName}
+        </div>
+      `;
+    });
+
+    calendar.innerHTML += `
+      <div class="day ${isToday ? "today" : ""}">
+        <div class="date">🌷 ${date}</div>
+        ${taskHTML}
+      </div>
+    `;
+  }
+}
+
+function renderDashboard(){
+  const data = visibleTasks();
+
+  totalTasks.innerText = data.length;
+
+  if(currentRole === "teacher"){
+    year1Count.parentElement.style.display = "block";
+    year2Count.parentElement.style.display = "block";
+    year3Count.parentElement.style.display = "block";
+    year4Count.parentElement.style.display = "block";
+
+    year1Count.innerText = tasks.filter(t=>t.yearLevel==="ปี 1").length;
+    year2Count.innerText = tasks.filter(t=>t.yearLevel==="ปี 2").length;
+    year3Count.innerText = tasks.filter(t=>t.yearLevel==="ปี 3").length;
+    year4Count.innerText = tasks.filter(t=>t.yearLevel==="ปี 4").length;
+  }else{
+    year1Count.parentElement.style.display = currentStudentYear === "ปี 1" ? "block" : "none";
+    year2Count.parentElement.style.display = currentStudentYear === "ปี 2" ? "block" : "none";
+    year3Count.parentElement.style.display = currentStudentYear === "ปี 3" ? "block" : "none";
+    year4Count.parentElement.style.display = currentStudentYear === "ปี 4" ? "block" : "none";
+
+    year1Count.innerText = currentStudentYear === "ปี 1" ? data.length : 0;
+    year2Count.innerText = currentStudentYear === "ปี 2" ? data.length : 0;
+    year3Count.innerText = currentStudentYear === "ปี 3" ? data.length : 0;
+    year4Count.innerText = currentStudentYear === "ปี 4" ? data.length : 0;
+  }
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const next7 = new Date(today);
+  next7.setDate(today.getDate() + 7);
+
+  nearDueCount.innerText = data.filter(t=>{
+    const d = new Date(t.dueDate);
+    return d >= today && d <= next7;
+  }).length;
+}
+
+function changeMonth(step){
+  currentDate.setMonth(currentDate.getMonth()+step);
+  renderCalendar();
+}
+
+function deleteTask(index){
+  if(currentRole !== "teacher"){
+    alert("นักศึกษาไม่มีสิทธิ์ลบงาน");
+    return;
+  }
+
+  tasks.splice(index,1);
+  saveData();
+  renderAll();
+}
+
+function clearAll(){
+  if(currentRole !== "teacher") return;
+
+  if(confirm("ต้องการลบข้อมูลทั้งหมดใช่ไหม?")){
+    tasks = [];
+    saveData();
+    renderAll();
+  }
+}
+
+function exportCSV(){
+  if(currentRole !== "teacher"){
+    alert("เฉพาะอาจารย์เท่านั้น");
+    return;
+  }
+
+  let csv = "ผู้สอน,ชั้นปี,รายวิชา,ชื่องาน,ประเภท,กำหนดส่ง,รายละเอียด\n";
+
+  tasks.forEach(t=>{
+    csv += `${t.teacher},${t.yearLevel},${t.course},${t.taskName},${t.type},${t.dueDate},${t.detail}\n`;
+  });
+
+  const blob = new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "student_tasks_public_health.csv";
+  a.click();
+}
+
+function saveData(){
+  localStorage.setItem("publicHealthTasksV2",JSON.stringify(tasks));
+}
+
+function formatDate(date){
+  return date ? new Date(date).toLocaleDateString("th-TH") : "-";
+}
+
+function updateClock(){
+  timeText.innerText = new Date().toLocaleTimeString("th-TH");
+}
+
+function renderAll(){
+  renderTables();
+  renderCalendar();
+  renderDashboard();
+  updateClock();
+}
+
+setInterval(updateClock,1000);
+</script>
+
+</body>
+</html>
